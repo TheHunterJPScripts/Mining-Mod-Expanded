@@ -1,22 +1,13 @@
-COMMAND_REQUEST_DATA = "Mining data request"
-COMMAND_ADD_MINING_ZONE = "Add mining zone"
-
-local keyBind1 = "h"
-local keyBind2 = "j"
-
 local function WhoAmI(keypressed)
     if isServer() then return end
-    -- local multiplayer = getWorld():getGameMode() == "Multiplayer"
-    -- local client = isClient()
-    -- local server = isServer()
 
-    if keypressed == keyBind1 then
-        ClientCommunication.sendRequest(COMMAND_REQUEST_DATA)
-    end
-
-    if keypressed == keyBind2 then
-        ClientCommunication.sendRequest(COMMAND_ADD_MINING_ZONE)
-    end
+    ClientCommunication.sendRequest(GetMiningModExpandedGlobal().communication.addZone, {
+        name = "DefaultZone",
+        startPoint = Point:new(),
+        endPoint = Point:new(),
+        oreType = COPPER_ORE,
+        maxSpawnCount = 1
+    })
 end
 
 Events.OnKeyPressed.Add(WhoAmI)
@@ -24,27 +15,21 @@ Events.OnKeyPressed.Add(WhoAmI)
 
 ClientCommunication = {}
 
-ClientCommunication.sendRequest = function(command)
-    sendClientCommand(GetMiningModExpandedGlobal().communicationTag, command, nil);
+ClientCommunication.sendRequest = function(command, args)
+    sendClientCommand(GetMiningModExpandedGlobal().communication.Tag, command, args);
 end
 
 ClientCommunication.onClientReceived = function(module, command, args)
-    if isServer() then return end
-
-    if module ~= GetMiningModExpandedGlobal().communicationTag then return end
-
     print("Received server command")
-    print(module .. "::" .. command .. "::" .. args)
+    print(module)
+    print(command)
+    print(args)
+
+    -- if not module == GetMiningModExpandedGlobal.communicationTag then return end
+
+    -- if command == COMMAND_ADD_MINING_ZONE then
+    -- ClientDatabase:SetData(args)
+    -- end
 end
 
 Events.OnServerCommand.Add(ClientCommunication.onClientReceived)
-
-Events.OnReceiveGlobalModData.Add(function(key, table)
-    if key == "Testing" then
-        ModData.remove("Testing")
-        ModData.getOrCreate("Testing")
-        ModData.add("Testing", table)
-        print("OnReceiveGlobalModData")
-        print(ModData.get("Testing").message)
-    end
-end)

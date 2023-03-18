@@ -28,16 +28,6 @@ function ServerDatabase:AddZone(clientMiningZone)
     return true
 end
 
-function ServerDatabase:OnZoneDataUpdated()
-    print("Mining Mod Extended transmiting zone data to clients")
-
-    local miningZones = ServerDatabase:getZonesForClient()
-
-    ModData.getOrCreate("ClientSideMiningZones")
-    ModData.add("ClientSideMiningZones", miningZones)
-    ModData.transmit("ClientSideMiningZones")
-end
-
 function ServerDatabase:Load()
     print("Mining Mod Extended Loading database")
 
@@ -52,9 +42,8 @@ function ServerDatabase:Save()
     ModData.add("ServerSideMiningZones", self.zones)
 end
 
-Events.OnLoad.add(function()
-    ServerDatabase:Load()
-end)
-Events.OnSave.add(function()
-    ServerDatabase:Save()
-end)
+if isServer() then
+    Events.OnServerStarted.Add(function()
+        ServerDatabase:Load()
+    end)
+end
