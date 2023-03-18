@@ -1,20 +1,12 @@
 ClientDatabase = {}
 ClientDatabase.zones = {}
 
-function ClientDatabase:SetData(pepe, zones)
-    -- print("Client set data")
-    -- print("Pepe")
-    -- print(pepe)
-    -- print("Zones")
-    -- print(zones)
-    -- if not zones then
-    --     print("Error adding a zone")
-    --     return
-    -- end
+function ClientDatabase.setData(data)
+    print("Client set data")
+    print(data)
 
-    -- self.zones = zones
-
-    -- for key, value in ipairs(self.zones) do
-    --     print("Key: " .. key .. " Value: " .. value)
-    -- end
+    for key, value in pairs(data.zones) do
+        print("Key: " .. key)
+        print("Value: " .. value.name)
+    end
 end

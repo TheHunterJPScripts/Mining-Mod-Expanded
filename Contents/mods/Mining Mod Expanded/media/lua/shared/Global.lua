@@ -1,10 +1,12 @@
-Global = {}
+MINING_MOD_EXPANDED_COMMUNICATION_CHANNEL = "MiningModExpandedCommunicationChannel"
+ADD_ZONE_CLIENT_REQUEST = "Add mining zone"
+GET_ZONE_DATA_REQUEST = "Get me zone data"
+ZONES_UPDATED_SERVER_REQUEST = "Zones updated"
+ADD_ZONE_FAILED_SERVER_REQUEST = "Failed to add zone"
 
-Global.UITag = "MiningModExpandedUI"
-Global.communication.Tag = "MiningModExpandedCommunicationChannel"
-Global.communication.requestData = "Mining data request"
-Global.communication.addZone = "Add mining zone"
-
-function GetMiningModExpandedGlobal()
-    return Global
-end
+IRON_ORE = "Iron ore"
+COPPER_ORE = "Copper ore"
+COAL_ORE = "Iron ore"
+ZINC_ORE = "Iron ore"
+NIQUEL_ORE = "Niquel ore"
+GOLD_ORE = "Gold ore"

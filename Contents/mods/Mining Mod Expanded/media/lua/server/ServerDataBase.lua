@@ -1,49 +1,78 @@
-ServerDatabase = {}
-ServerDatabase.zones = {}
+ServerDatabase = {
+    zones = {}
+}
+
+DatabaseInstance = DatabaseInstance or ServerDatabase
+
+function ServerDatabase:new()
+    local o = {}
+    o.zones = {};
+
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
 
 function ServerDatabase:getZonesForClient()
-    if IsMultiplayer() and isClient() then return end
-
+    print("Get zones for client")
     local clientZones = {}
 
-    for key, value in ipairs(self.zones) do
-        clientZones[key] = MiningZoneClientSide:new(value.name,
-            value.startPoint,
-            value.endPoint,
-            value.oreType,
-            value.maxSpawnCount)
+    clientZones.zones = {}
+
+    for key, value in pairs(self.zones) do
+        -- clientZones.zones[key] = MiningZoneClientSide:new(value.name,
+        --     value.startPoint,
+        --     value.endPoint,
+        --     value.oreType,
+        --     value.maxSpawnCount)
+
+        -- local l = MiningZoneClientSide:new(value.name,
+        --     value.startPoint,
+        --     value.endPoint,
+        --     value.oreType,
+        --     value.maxSpawnCount)
+        -- print(l)
+        clientZones.zones[key] = { name = value.name }
     end
 
     return clientZones
 end
 
-function ServerDatabase:AddZone(clientMiningZone)
-    print("Mining Mod Extended adding zone")
+function ServerDatabase:addZone(clientMiningZone)
+    if self.zones[clientMiningZone.name] then return false end
 
-    if ServerDatabase.zones[clientMiningZone.name] then return false end
+    -- self.zones[clientMiningZone.name] = MiningZoneServerSide:new(clientMiningZone)
 
-    ServerDatabase.zones[clientMiningZone.name] = MiningZoneServerSide:new(clientMiningZone)
-    self:OnZoneDataUpdated()
+    self:save()
+    self:onZoneDataUpdated()
 
     return true
 end
 
-function ServerDatabase:Load()
-    print("Mining Mod Extended Loading database")
-
+function ServerDatabase:load()
     self.zones = ModData.getOrCreate("ServerSideMiningZones")
-    self:OnZoneDataUpdated()
+    print(
+        "LOADDINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
+    for key, value in pairs(self.zones) do
+        print("Adding to load ")
+    end
+    self:onZoneDataUpdated()
 end
 
-function ServerDatabase:Save()
-    print("Mining Mod Extended Saving database")
+function ServerDatabase:onZoneDataUpdated()
+    -- local zones = self:getZonesForClient()
+    ServerCommunication.TransmitDataUpdate(self.zones)
+end
 
+function ServerDatabase:save()
     ModData.getOrCreate("ServerSideMiningZones")
     ModData.add("ServerSideMiningZones", self.zones)
 end
 
 if isServer() then
     Events.OnServerStarted.Add(function()
-        ServerDatabase:Load()
+        local database = ServerDatabase:new()
+        DatabaseInstance = database
+        DatabaseInstance:load()
     end)
 end
