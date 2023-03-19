@@ -1,9 +1,13 @@
 MiningZones = { zones = {} }
 
+MiningZones.getSize = function()
+    return 0
+end
+
 MiningZones.setZones = function(zones)
     MiningZones.zones = zones
 
-    for key, value in pairs(zones) do
-        print("Set Key: " .. key .. " Value: " .. value.name)
+    if ISMiningZonePanel.instance then
+        ISMiningZonePanel.instance:populateList()
     end
 end

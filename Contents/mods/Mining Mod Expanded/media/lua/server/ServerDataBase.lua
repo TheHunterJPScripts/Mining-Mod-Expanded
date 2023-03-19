@@ -1,5 +1,3 @@
-DatabaseInstance = DatabaseInstance or {}
-
 ServerDatabase = {
     zones = {}
 }
@@ -23,11 +21,18 @@ end
 function ServerDatabase:addZone(clientMiningZone)
     if self.zones[clientMiningZone.name] then return false end
 
-    self.zones[clientMiningZone.name] = MiningZoneServerSide:create(clientMiningZone)
+    local newZone = MiningZoneServerSide:create(clientMiningZone)
+    self.zones[newZone.name] = newZone
 
     self:save()
 
     return true
+end
+
+function ServerDatabase:removeZone(clientMiningZone)
+    self.zones[clientMiningZone.name] = nil
+
+    self:save()
 end
 
 function ServerDatabase:getZonesForClient()
@@ -46,8 +51,7 @@ end
 
 if isServer() then
     Events.OnServerStarted.Add(function()
-        local database = ServerDatabase:create()
-        database:load()
-        DatabaseInstance = database
+        ServerDatabase:create()
+        ServerDatabase:load()
     end)
 end

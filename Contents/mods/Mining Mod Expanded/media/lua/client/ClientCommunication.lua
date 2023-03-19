@@ -1,13 +1,4 @@
-local function WhoAmI(keypressed)
-    if isServer() then return end
-
-    SendClientRequest(GET_ZONE_DATA_REQUEST, nil)
-end
-
-Events.OnKeyPressed.Add(WhoAmI)
-
 function SendClientRequest(command, args)
-    print("Sent request")
     sendClientCommand(MINING_MOD_EXPANDED_COMMUNICATION_CHANNEL, command, args)
 end
 
@@ -15,6 +6,18 @@ ClientCommunication = { requests = {} }
 
 ClientCommunication.requests[ZONES_UPDATED_SERVER_REQUEST] = function(args)
     MiningZones.setZones(args.zones)
+end
+
+ClientCommunication.requests[ADD_ZONE_CLIENT_REQUEST] = function(miningZone)
+    SendClientRequest(ADD_ZONE_CLIENT_REQUEST, miningZone)
+end
+
+ClientCommunication.requests[REMOVE_ZONE_CLIENT_REQUEST] = function(miningZone)
+    SendClientRequest(REMOVE_ZONE_CLIENT_REQUEST, miningZone)
+end
+
+ClientCommunication.requests[GET_ZONE_CLIENT_REQUEST] = function()
+    SendClientRequest(GET_ZONE_CLIENT_REQUEST, nil)
 end
 
 ClientCommunication.onClientReceived = function(module, command, args)
