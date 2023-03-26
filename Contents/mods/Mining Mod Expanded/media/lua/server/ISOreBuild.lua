@@ -71,24 +71,24 @@ function ISOreBuild:getJavaObject()
 end
 
 function ISOreBuild.spawnOre(x, y, z, zone)
-    print("Spawning Ore " .. zone.name)
-    local object = ISOreBuild:new("Pepe", "furniture_shelving_01_28")
-    object:create(x, y, z, false, "furniture_shelving_01_28")
+    -- TODO: Check if square is available for spawn
+
+    local oreData = MiningZoneShared.ores[zone.oreID]
+
+    if not oreData then
+        print("Unable to find ore data")
+        return
+    end
+
+    print("Spawning Ore " .. oreData.id)
+    local textureIndex = ZombRand(#oreData.textures) + 1
+    local texture = oreData.textures[textureIndex]
+
+    local object = ISOreBuild:new(oreData.name, texture)
+    object:create(x, y, z, false, texture)
     object.javaObject:transmitCompleteItemToClients();
 
-    ServerDatabase.data.pendingOres[x .. "::" .. y .. "::" .. z] = nil
-    -- local ore = zone.oreType
-    -- local oreData = MiningMod.resources[ore]
-
-
-    -- -- TODO: add ramdom between possible textures
-    -- local object = ISOreBuild:new(ore, oreData.textures[0])
-    -- object:create(x, y, z, false, oreData.textures[0])
-
-    -- local id = x .. "::" .. y .. "::" .. z
-    -- zone.ores[id] = object
-    -- object.javaObject:transmitCompleteItemToClients();
-
-    -- local square = getCell():getGridSquare(10935, 10133, 0);
-    -- square:AddTileObject(object)
+    local locationID = x .. "::" .. y .. "::" .. z
+    ServerDatabase.data.pendingOres[locationID] = nil
+    -- ServerDatabase.data.zones[zone.name].ores[locationID] = object
 end

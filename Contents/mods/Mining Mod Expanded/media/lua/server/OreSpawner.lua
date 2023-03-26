@@ -7,7 +7,28 @@ function SpawnOres()
         return;
     end
 
-    SpawnOre(10935, 10133, 0, { name = "Pepe" })
+    print("TESTTTTTTTTTTTTTTTTT")
+
+    local zonesAvailable = GetZonesToProcess()
+
+    if not zonesAvailable then return end
+
+    print("There is available zones")
+
+
+    for i, zone in pairs(zonesAvailable) do
+        for attempt = 1, MaxAtemptsPerZone do
+            print("Attempt:" .. attempt)
+            print("SPAWNNNNNNNNNNNNN TRY")
+
+            local position = GetRandomPos(zone)
+
+            if SpawnOre(position.x, position.y, position.z, zone) then
+                break
+            end
+        end
+    end
+
     -- local zonesToSpawn = GetSpawnToProcess()
 
     -- if not zonesToSpawn then
@@ -27,14 +48,62 @@ function SpawnOres()
     -- end
 end
 
-function GetSpawnToProcess()
+function GetRandomPos(zone)
+    local x1, x2 = zone.startPoint.x, zone.endPoint.x
+    if x1 > x2 then
+        local temp = x2
+        x2 = x1
+        x1 = temp
+    end
+
+    local y1, y2 = zone.startPoint.y, zone.endPoint.y
+    if y1 > y2 then
+        local temp = y2
+        y2 = y1
+        y1 = temp
+    end
+    local z = zone.startPoint.z
+
+    print("START: " .. x1 .. "x" .. y1 .. "x" .. z)
+    print("END: " .. x2 .. "x" .. y2 .. "x" .. z)
+    local newX = ZombRand(x2 - x1) + x1
+    local newY = ZombRand(y2 - y1) + y1
+    print("NEW: " .. newX .. "x" .. newY .. "x" .. z)
+
+    return { x = newX, y = newY, z = z }
+end
+
+function RequireSpawn(zone)
+    local currentOreCount = Tablelength(zone.ores)
+    if currentOreCount >= zone.maxSpawnCount then
+        return false
+    end
+
+    local pendingCount = 0
+    for _, zonePending in pairs(ServerDatabase.data.pendingOres) do
+        if zone.name == zonePending.name then
+            pendingCount = pendingCount + 1
+        end
+    end
+
+    if currentOreCount + pendingCount >= zone.maxSpawnCount then
+        return false
+    end
+
+    return true
+end
+
+function GetZonesToProcess()
     local availableZones = {}
 
-    for _, value in pairs(ServerDatabase.zones) do
+    print("GetZonesToProcess")
+
+    for _, zone in pairs(ServerDatabase.data.zones) do
+        print("Looking zone " .. zone.name)
         -- TODO: make it check if there is available spawning spots
-        if (true) then
-            print("Inserting: " .. value.name)
-            table.insert(availableZones, value)
+        if true then
+            print("Inserting: " .. zone.name)
+            table.insert(availableZones, zone)
         end
     end
 
@@ -42,7 +111,7 @@ function GetSpawnToProcess()
     print("Length: " .. availableLength)
 
     if availableLength <= 0 then
-        print("No spawn required")
+        print("No zone requireing spawn found")
         return nil
     end
 
@@ -54,8 +123,7 @@ function GetSpawnToProcess()
 
     while (#spawnable < amountRequired) do
         print("Spawnable length: " .. #spawnable)
-        --local index = math.random(1, #availableZones) -- TODO: Replace with working random
-        local index = 1
+        local index = ZombRand(#availableZones) + 1
         print("Index: " .. index)
         local zone = table.remove(availableZones, index)
         print("Inserting: " .. zone.name)
@@ -68,54 +136,33 @@ function GetSpawnToProcess()
 end
 
 function SpawnOre(x, y, z, zone)
-    print(x .. "::" .. y .. "::" .. z .. " " .. zone.name)
+    local locationID = x .. "::" .. y .. "::" .. z
+    print(locationID .. " " .. zone.name)
 
-    if ServerDatabase.data.pendingOres[x .. "::" .. y .. "::" .. z] then
+    print("CHECK IF QUEUE")
+    if ServerDatabase.data.pendingOres[locationID] then
         print("ALREADY IN QUEUE")
-        return
+        return false
     end
-    print("ADDED")
+
+    -- print("CHECK IF IN ZONE")
+    -- if zone.ores and zone.ores[locationID] then
+    --     print("ALREADY IN ZONE")
+    --     return false
+    -- end
+
+    -- TODO: add square validation too
 
     local square = getCell():getGridSquare(x, y, z);
 
     if not square then
-        ServerDatabase.data.pendingOres[x .. "::" .. y .. "::" .. z] = zone
-        return
+        ServerDatabase.data.pendingOres[locationID] = zone
+        return true
     end
 
     ISOreBuild.spawnOre(x, y, z, zone)
 
-    -- ISOreBuild.spawnOre(x, y, z, zone)
-
-
-    -- print("Previous amount" .. #ores)
-
-    -- local object = ISOreBuild:new("Pepe", "furniture_shelving_01_28")
-    -- object:create(10935, 10133, 0, false, "furniture_shelving_01_28")
-    -- local args = {
-    --     x = 10935,
-    --     y = 10133,
-    --     z = 0,
-    --     north = false,
-    --     sprite = "furniture_shelving_01_28",
-    --     name = "Pepe",
-    --     zone = "",
-    -- }
-    -- local object = ISOreBuild:new(args.name, args.sprite)
-    -- object:create(args.x, args.y, args.z, args.north, args.sprite)
-    -- object.javaObject:transmitCompleteItemToClients();
-    -- SendServerRequest(SPAWN_ORE_SERVER_REQUEST, args)
-    -- table.insert(ores, object)
-    -- print("Object added")
-
-    -- local square = getCell():getGridSquare(10935, 10133, 0);
-    -- square:AddTileObject(object)
-    -- if square then
-    --     square:transmitAddObjectToSquare(object.javaObject, -1)
-    -- end
-    -- AddSpecialObject peta si no estas cargando la zona
-    -- Probar a copiar la clase ISSimpleFurniture pero quitar AddSpecialObject de create a ver si sigue spawneando
-    -- el tile o no
+    return true
 end
 
 Events.EveryTenMinutes.Add(function()

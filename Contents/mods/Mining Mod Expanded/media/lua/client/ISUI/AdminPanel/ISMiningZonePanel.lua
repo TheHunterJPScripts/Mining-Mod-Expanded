@@ -85,9 +85,9 @@ end
 function ISMiningZonePanel:populateList()
     self.miningZoneList:clear();
 
-    for i, w in pairs(MiningZones.zones) do
-        local newZone = w;
-        self.miningZoneList:addItem(i, newZone);
+    for key, zone in pairs(MiningZones.zones) do
+        local newZone = zone;
+        self.miningZoneList:addItem(key, newZone);
     end
 end
 
@@ -106,15 +106,14 @@ function ISMiningZonePanel:drawList(y, item, alt)
 end
 
 function ISMiningZonePanel:prerender()
-    local z = 20;
-    local splitPoint = 100;
-    local x = 10;
     self:drawRect(0, 0, self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g,
         self.backgroundColor.b);
     self:drawRectBorder(0, 0, self.width, self.height, self.borderColor.a, self.borderColor.r, self.borderColor.g,
         self.borderColor.b);
+
+    -- TODO: Add more parameters to the table
     self:drawText(getText("IGUI_MiningZone_Title"),
-        self.width / 2 - (getTextManager():MeasureStringX(UIFont.Medium, getText("IGUI_MiningZone_Title")) / 2), z, 1, 1,
+        self.width / 2 - (getTextManager():MeasureStringX(UIFont.Medium, getText("IGUI_MiningZone_Title")) / 2), 20, 1, 1,
         1,
         1,
         UIFont.Medium);
@@ -124,48 +123,60 @@ function ISMiningZonePanel:onClick(button)
     if button.internal == "OK" then
         self:setVisible(false);
         self:removeFromUIManager();
+
+        return
     end
     if button.internal == "ADDZONE" then
         local addMiningZone = ISAddMiningZoneUI:new(10, 10, 400, 350, self.player);
         addMiningZone:initialise()
         addMiningZone:addToUIManager()
         addMiningZone.parentUI = self;
+
+        return
     end
     if button.internal == "REFRESH" then
+        -- Request update from server
         ClientCommunication.requests[GET_ZONE_CLIENT_REQUEST]()
+
+        return
     end
     if button.internal == "REMOVEZONE" then
-        local count = 1
-        for _, v in pairs(MiningZones.zones) do
-            if count == self.miningZoneList.selected then
-                print("Selected: " .. v.name)
-                local modal = ISModalDialog:new(0, 0, 350, 150,
-                    getText("IGUI_PvpZone_RemoveConfirm", v.name), true, nil,
-                    ISMiningZonePanel.onRemoveZone);
-                modal:initialise()
-                modal:addToUIManager()
-                modal.ui = self;
-                modal.selectedZone = v.name;
-                return
-            end
-            count = count + 1
+        local selectedZone = self:getSelectedZoneData()
+
+        if not selectedZone then
+            return
         end
+
+        -- Display confimation modal to prefent unwanted removal
+        local modal = ISModalDialog:new(0, 0, 350, 150,
+            getText("IGUI_PvpZone_RemoveConfirm", selectedZone.name), true, nil,
+            ISMiningZonePanel.onRemoveZone);
+        modal:initialise()
+        modal:addToUIManager()
+        modal.ui = self;
+        modal.selectedZone = selectedZone.name;
+
+        return
     end
     if button.internal == "TELEPORTTOZONE" then
-        count = 1
-        for _, v in pairs(MiningZones.zones) do
-            if count == self.miningZoneList.selected then
-                SendCommandToServer("/teleportto " .. v.startPoint.x .. "," .. v.startPoint.y .. ",0");
-                return
-            end
-            count = count + 1
+        local selectedZone = self:getSelectedZoneData()
+
+        if not selectedZone then
+            return
         end
+
+        SendCommandToServer("/teleportto " ..
+            selectedZone.startPoint.x .. "," ..
+            selectedZone.startPoint.y .. "," ..
+            selectedZone.startPoint.z);
+
+        return
     end
 end
 
 function ISMiningZonePanel:onRemoveZone(button)
     if button.internal == "YES" then
-        print("Remove " .. button.parent.selectedZone)
+        -- Request zone removal to server
         ClientCommunication.requests[REMOVE_ZONE_CLIENT_REQUEST]({ name = button.parent.selectedZone })
     end
 end
@@ -190,4 +201,16 @@ function ISMiningZonePanel:new(x, y, width, height, player)
     o.startY = nil;
     o.endY = nil;
     return o;
+end
+
+function ISMiningZonePanel:getSelectedZoneData()
+    local count = 1
+    -- Search the data of the selected zone
+    for _, zone in pairs(MiningZones.zones) do
+        if count == self.miningZoneList.selected then
+            return zone
+        end
+        count = count + 1
+    end
+    return nil
 end

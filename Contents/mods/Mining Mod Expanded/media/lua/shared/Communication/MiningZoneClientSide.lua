@@ -2,11 +2,11 @@ MiningZoneClientSide = {
     name = "DefaultZone",
     startPoint = {},
     endPoint = {},
-    oreType = COPPER_ORE,
+    oreID = COPPER_ORE_ID,
     maxSpawnCount = 1
 }
 
-function MiningZoneClientSide:create(name, startPoint, endPoint, oreType, maxSpawnCount)
+function MiningZoneClientSide:create(name, startPoint, endPoint, oreID, maxSpawnCount)
     local o = {}
     setmetatable(o, self)
     self.__index = self
@@ -14,7 +14,7 @@ function MiningZoneClientSide:create(name, startPoint, endPoint, oreType, maxSpa
     o.name = name;
     o.startPoint = startPoint;
     o.endPoint = endPoint;
-    o.oreType = oreType;
+    o.oreID = oreID;
     o.maxSpawnCount = maxSpawnCount;
 
     return o

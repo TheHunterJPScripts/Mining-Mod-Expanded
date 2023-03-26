@@ -16,28 +16,36 @@ end
 
 
 local function onClick(button)
+    -- If the zone is already open, we just close it
     if ISMiningZonePanel.instance then
         ISMiningZonePanel.instance:close()
+        return
     end
+
+    -- Request zone update from server
+    ClientCommunication.requests[GET_ZONE_CLIENT_REQUEST]()
+
+    -- Open the Mining zone panel
     local ui = ISMiningZonePanel:new(50, 50, 600, 600, getPlayer());
     ui:initialise();
     ui:addToUIManager();
 end
 
 function ISAdminPanelUI:create()
+    -- Render the vanilla UI
     previousUI(self)
 
+    -- Add the Mining zone panel button to the UI
+    local lastButton = getLastButton(self)
     local width = 150
     local height = math.max(25, FONT_SIZE + 3 * 2)
     local marginY = 5
-
-    local lastButton = getLastButton(self)
     local x = lastButton.x
     local y = lastButton.y + height + marginY
 
     self.miningZoneButton = ISButton:new(x, y, width, height, getText("IGUI_AdminPanel_MiningZone"), self,
         onClick);
-    self.miningZoneButton.internal = UI_TAG;
+    self.miningZoneButton.internal = "MiningModExpandedUI";
     self.miningZoneButton:initialise();
     self.miningZoneButton:instantiate();
     self.miningZoneButton.borderColor = self.buttonBorderColor;
@@ -45,19 +53,10 @@ function ISAdminPanelUI:create()
     y = y + height + marginY
 end
 
+-- TODO: Remove, only used to force open the menu en single player
 local function WhoAmI(keypressed)
     if keypressed == 25 then
         onClick(nil)
-    end
-    if keypressed == 24 then
-        SendClientRequest(GET_ZONE_CLIENT_REQUEST, nil)
-    end
-    if keypressed == 23 then
-        local cell = getWorld():getCell();
-        local square = cell:getGridSquare(10935, 10133, 0);
-        local object = ISSimpleFurniture:new("Pepe", "furniture_shelving_01_28")
-        object:create(square:getX(), square:getY(), square:getZ(), false, "furniture_shelving_01_28")
-        square:transmitAddObjectToSquare(object.javaObject, -1)
     end
 end
 

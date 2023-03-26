@@ -5,15 +5,12 @@
 ISAddMiningZoneUI = ISPanel:derive("ISAddMiningZoneUI");
 
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
-local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
 
 function ISAddMiningZoneUI:initialise()
     ISPanel.initialise(self);
     local btnWid = 100
     local btnHgt = FONT_HGT_SMALL + 2 * 2
-    local btnHgt2 = FONT_HGT_SMALL + 2 * 2
     local padBottom = 10
-    local padRight = 20
     local x = 20
     local x2 = 250
     self.nextButtonHeight = 60
@@ -27,7 +24,7 @@ function ISAddMiningZoneUI:initialise()
     self.titleEntryLabel:instantiate()
     self:addChild(self.titleEntryLabel)
 
-    local title = "Mining Zone #" .. NonPvpZone.getAllZones():size() + 1;
+    local title = "Mining Zone #" .. #MiningZones.zones + 1;
     self.titleEntry = ISTextEntryBox:new(title, x2, self.nextButtonHeight, btnWid, btnHgt);
     self.titleEntry:initialise();
     self.titleEntry:instantiate();
@@ -35,22 +32,22 @@ function ISAddMiningZoneUI:initialise()
     self.nextButtonHeight = self.nextButtonHeight + btnHgt + padBottom
 
     -- Add select ore combo box
-    local oreLabel = getText("IGUI_MiningZone_OreTypeLabel")
-    self.oreTypeLabel = ISLabel:new(x, self.nextButtonHeight, btnHgt, oreLabel, 1, 1, 1, 1,
+    local oreLabel = getText("IGUI_MiningZone_OreSelectorLabel")
+    self.oreSelectorLabel = ISLabel:new(x, self.nextButtonHeight, btnHgt, oreLabel, 1, 1, 1, 1,
         UIFont.Small, true)
-    self.oreTypeLabel:initialise()
-    self.oreTypeLabel:instantiate()
-    self:addChild(self.oreTypeLabel)
+    self.oreSelectorLabel:initialise()
+    self.oreSelectorLabel:instantiate()
+    self:addChild(self.oreSelectorLabel)
 
-    self.oreType = ISComboBox:new(x2, self.nextButtonHeight, btnWid, btnHgt, nil, nil);
-    self.oreType:initialise();
+    self.oreSelector = ISComboBox:new(x2, self.nextButtonHeight, btnWid, btnHgt, nil, nil);
+    self.oreSelector:initialise();
 
-    for i, k in pairs(ORES) do
-        self.oreType:addOption(k.id);
+    for _, ore in pairs(MiningZoneShared.ores) do
+        self.oreSelector:addOption(ore.name);
     end
 
-    self.oreType.selected = 3;
-    self:addChild(self.oreType);
+    self.oreSelector.selected = 1;
+    self:addChild(self.oreSelector);
     self.nextButtonHeight = self.nextButtonHeight + btnHgt + padBottom
 
     -- Add max spawn amount
@@ -90,11 +87,9 @@ function ISAddMiningZoneUI:prerender()
     local z = 20;
     local x = 20;
     local y = self.nextButtonHeight
-    local startingX = self.startingX;
-    local startingY = self.startingY;
-    local endX = math.floor(self.player:getX());
-    local endY = math.floor(self.player:getY());
-    local endZ = math.floor(self.player:getZ());
+    self.endX = math.floor(self.player:getX());
+    self.endY = math.floor(self.player:getY());
+    self.endZ = math.floor(self.player:getZ());
 
     -- Render panel background
     self:drawRect(0, 0, self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g,
@@ -116,19 +111,24 @@ function ISAddMiningZoneUI:prerender()
 
     -- Render start point
     self:drawText(getText("IGUI_PvpZone_StartingPoint"), x, y, 1, 1, 1, 1, UIFont.Small);
-    self:drawText(startingX .. " x " .. startingY, 250,
+    self:drawText("x:" .. self.startingX .. " y:" .. self.startingY .. " z:" .. self.startingZ, 250,
         y, 1, 1, 1,
         1, UIFont.Small);
     y = y + btnHgt + padBottom
 
     -- Render end point
     self:drawText(getText("IGUI_PvpZone_StartingPoint"), x, y, 1, 1, 1, 1, UIFont.Small);
-    self:drawText("X:" .. endX .. " Y:" .. endY .. " Z:" .. endZ, 250,
+    self:drawText("x:" .. self.endX .. " y:" .. self.endY .. " z:" .. self.endZ, 250,
         y, 1, 1, 1,
         1, UIFont.Small);
     y = y + btnHgt + padBottom
 
     -- Render area size
+    local startingX = self.startingX
+    local startingY = self.startingY
+    local endX = self.endX
+    local endY = self.endY
+
     if startingX > endX then
         local x2 = endX;
         endX = startingX;
@@ -139,6 +139,7 @@ function ISAddMiningZoneUI:prerender()
         endY = startingY;
         startingY = y2;
     end
+
     local width = (endX - startingX) + 1;
     local height = (endY - startingY) + 1;
     self.size = width * height;
@@ -147,12 +148,12 @@ function ISAddMiningZoneUI:prerender()
 
     self:updateButtons();
 
-    if self.size <= 1 then return end
+    if self.size <= 1 or self.startingZ ~= self.endZ then return end
 
     -- Render blocks
     for squareX = startingX, endX do
         for squareY = startingY, endY do
-            local sq = getCell():getGridSquare(squareX, squareY, 0);
+            local sq = getCell():getGridSquare(squareX, squareY, self.startingZ);
             if sq then
                 for n = 0, sq:getObjects():size() - 1 do
                     local obj = sq:getObjects():get(n);
@@ -165,17 +166,22 @@ function ISAddMiningZoneUI:prerender()
 end
 
 function ISAddMiningZoneUI:updateButtons()
-    self.ok.enable = self.size > 1;
+    self.ok.enable = self.size > 1 and self.startingZ == self.endZ;
 end
 
 function ISAddMiningZoneUI:onClick(button)
     if button.internal == "OK" then
-        local endX = math.floor(self.player:getX());
-        local endY = math.floor(self.player:getY());
+        local startPoint = { x = self.startingX, y = self.startingY, z = self.startingZ }
+        local endPoint = { x = self.endX, y = self.endY, z = self.endZ }
+        local ore = MiningZoneShared.getOreIDByIndex(self.oreSelector.selected)
+        print("ORE ID ")
+        print(ore)
+        if not ore then return end
+
         local miningZone = MiningZoneClientSide:create(self.titleEntry:getInternalText(),
-            { x = self.startingX, y = self.startingY },
-            { x = endX, y = endY },
-            self.oreType.selected,
+            startPoint,
+            endPoint,
+            ore,
             self.maxSpawnEntry:getInternalText()
         )
 
@@ -214,8 +220,10 @@ function ISAddMiningZoneUI:new(x, y, width, height, player)
     o.player = player;
     o.startingX = math.floor(player:getX());
     o.startingY = math.floor(player:getY());
+    o.startingZ = math.floor(player:getZ());
     o.endX = math.floor(player:getX());
     o.endY = math.floor(player:getY());
+    o.endZ = math.floor(player:getZ());
     o.moveWithMouse = true;
     ISAddMiningZoneUI.instance = o;
     o.buttonBorderColor = { r = 0.7, g = 0.7, b = 0.7, a = 0.5 };

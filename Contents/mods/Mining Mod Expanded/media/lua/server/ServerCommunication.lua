@@ -14,6 +14,8 @@ ServerCommunication.requests[GET_ZONE_CLIENT_REQUEST] = function(player, args)
 end
 
 ServerCommunication.requests[ADD_ZONE_CLIENT_REQUEST] = function(player, args)
+    print("ADD zone requested from player")
+
     if not ServerDatabase:addZone(args) then
         SendServerRequestToPlayer(player, ADD_ZONE_FAILED_SERVER_REQUEST,
             { message = "Error: Something whent wrong when trying to add the new zone." })

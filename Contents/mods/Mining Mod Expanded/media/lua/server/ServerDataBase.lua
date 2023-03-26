@@ -46,7 +46,7 @@ function ServerDatabase:getZonesForClient()
         clientZones.zones[key] = MiningZoneClientSide:create(value.name,
             value.startPoint,
             value.endPoint,
-            value.oreType,
+            value.oreID,
             value.maxSpawnCount)
     end
 
