@@ -20,6 +20,13 @@ ClientCommunication.requests[GET_ZONE_CLIENT_REQUEST] = function()
     SendClientRequest(GET_ZONE_CLIENT_REQUEST, nil)
 end
 
+ClientCommunication.requests[SPAWN_ORE_SERVER_REQUEST] = function(args)
+    print("Adding ore")
+    local object = ISOreBuild:new(args.name, args.sprite)
+    object:create(args.x, args.y, args.z, args.north, args.sprite)
+    print("Added")
+end
+
 ClientCommunication.onClientReceived = function(module, command, args)
     if module ~= MINING_MOD_EXPANDED_COMMUNICATION_CHANNEL then return end
     print("Get request")

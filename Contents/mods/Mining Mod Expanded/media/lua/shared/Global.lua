@@ -9,6 +9,7 @@ GET_ZONE_CLIENT_REQUEST = "Get me zones data"
 -- Server commands
 ZONES_UPDATED_SERVER_REQUEST = "Zones updated"
 ADD_ZONE_FAILED_SERVER_REQUEST = "Failed to add zone"
+SPAWN_ORE_SERVER_REQUEST = "Spawn ore"
 
 ORES = {
     { id = "Iron ore" },

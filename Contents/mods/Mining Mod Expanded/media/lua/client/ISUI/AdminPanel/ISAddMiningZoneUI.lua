@@ -94,6 +94,7 @@ function ISAddMiningZoneUI:prerender()
     local startingY = self.startingY;
     local endX = math.floor(self.player:getX());
     local endY = math.floor(self.player:getY());
+    local endZ = math.floor(self.player:getZ());
 
     -- Render panel background
     self:drawRect(0, 0, self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g,
@@ -122,7 +123,7 @@ function ISAddMiningZoneUI:prerender()
 
     -- Render end point
     self:drawText(getText("IGUI_PvpZone_StartingPoint"), x, y, 1, 1, 1, 1, UIFont.Small);
-    self:drawText(endX .. " x " .. endY, 250,
+    self:drawText("X:" .. endX .. " Y:" .. endY .. " Z:" .. endZ, 250,
         y, 1, 1, 1,
         1, UIFont.Small);
     y = y + btnHgt + padBottom

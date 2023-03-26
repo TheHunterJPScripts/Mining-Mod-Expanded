@@ -52,6 +52,13 @@ local function WhoAmI(keypressed)
     if keypressed == 24 then
         SendClientRequest(GET_ZONE_CLIENT_REQUEST, nil)
     end
+    if keypressed == 23 then
+        local cell = getWorld():getCell();
+        local square = cell:getGridSquare(10935, 10133, 0);
+        local object = ISSimpleFurniture:new("Pepe", "furniture_shelving_01_28")
+        object:create(square:getX(), square:getY(), square:getZ(), false, "furniture_shelving_01_28")
+        square:transmitAddObjectToSquare(object.javaObject, -1)
+    end
 end
 
 Events.OnKeyPressed.Add(WhoAmI)

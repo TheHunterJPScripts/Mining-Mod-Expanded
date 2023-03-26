@@ -1,5 +1,8 @@
 ServerDatabase = {
-    zones = {}
+    data = {
+        zones = {},
+        pendingOres = {}
+    }
 }
 ServerDatabase.__index = ServerDatabase
 
@@ -10,19 +13,20 @@ function ServerDatabase:create()
 end
 
 function ServerDatabase:load()
-    self.zones = ModData.getOrCreate("ServerSideMiningZones")
+    self.data = ModData.getOrCreate("ServerSideMiningZones")
 end
 
 function ServerDatabase:save()
+    ModData.remove("ServerSideMiningZones")
     ModData.getOrCreate("ServerSideMiningZones")
-    ModData.add("ServerSideMiningZones", self.zones)
+    ModData.add("ServerSideMiningZones", self.data)
 end
 
 function ServerDatabase:addZone(clientMiningZone)
-    if self.zones[clientMiningZone.name] then return false end
+    if self.data.zones[clientMiningZone.name] then return false end
 
     local newZone = MiningZoneServerSide:create(clientMiningZone)
-    self.zones[newZone.name] = newZone
+    self.data.zones[newZone.name] = newZone
 
     self:save()
 
@@ -30,7 +34,7 @@ function ServerDatabase:addZone(clientMiningZone)
 end
 
 function ServerDatabase:removeZone(clientMiningZone)
-    self.zones[clientMiningZone.name] = nil
+    self.data.zones[clientMiningZone.name] = nil
 
     self:save()
 end
@@ -38,7 +42,7 @@ end
 function ServerDatabase:getZonesForClient()
     local clientZones = { zones = {} }
 
-    for key, value in pairs(self.zones) do
+    for key, value in pairs(self.data.zones) do
         clientZones.zones[key] = MiningZoneClientSide:create(value.name,
             value.startPoint,
             value.endPoint,

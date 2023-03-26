@@ -5,6 +5,7 @@ MiningZoneServerSide = {
   oreType = COPPER_ORE,
   maxSpawnCount = 1,
   currentAvailableOres = 0,
+  ores = {}
 }
 
 function MiningZoneServerSide:create(miningZoneClientSide)
@@ -20,3 +21,11 @@ function MiningZoneServerSide:create(miningZoneClientSide)
 
   return o
 end
+
+function MiningZoneServerSide:requireSpawn()
+  return true
+end
+
+-- function MiningZoneServerSide.requireSpawn(miningZone)
+--   return true
+-- end
