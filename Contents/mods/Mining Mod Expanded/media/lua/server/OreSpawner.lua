@@ -7,20 +7,16 @@ function SpawnOres()
         return;
     end
 
-    print("TESTTTTTTTTTTTTTTTTT")
+    ServerDatabase:recomputeOres()
 
     local zonesAvailable = GetZonesToProcess()
 
     if not zonesAvailable then return end
 
-    print("There is available zones")
-
+    print("Zones available")
 
     for i, zone in pairs(zonesAvailable) do
         for attempt = 1, MaxAtemptsPerZone do
-            print("Attempt:" .. attempt)
-            print("SPAWNNNNNNNNNNNNN TRY")
-
             local position = GetRandomPos(zone)
 
             if SpawnOre(position.x, position.y, position.z, zone) then
@@ -28,24 +24,6 @@ function SpawnOres()
             end
         end
     end
-
-    -- local zonesToSpawn = GetSpawnToProcess()
-
-    -- if not zonesToSpawn then
-    --     return
-    -- end
-
-    -- local index = 0
-
-    -- for _, value in pairs(zonesToSpawn) do
-    --     print("Spawn atempt for zone " .. value.name)
-    --     SpawnTest(value.startPoint)
-
-    --     index = index + 1
-    --     if (index >= MaxMiningZonesSelectedPerIteration) then
-    --         break
-    --     end
-    -- end
 end
 
 function GetRandomPos(zone)
@@ -64,11 +42,8 @@ function GetRandomPos(zone)
     end
     local z = zone.startPoint.z
 
-    print("START: " .. x1 .. "x" .. y1 .. "x" .. z)
-    print("END: " .. x2 .. "x" .. y2 .. "x" .. z)
     local newX = ZombRand(x2 - x1) + x1
     local newY = ZombRand(y2 - y1) + y1
-    print("NEW: " .. newX .. "x" .. newY .. "x" .. z)
 
     return { x = newX, y = newY, z = z }
 end
@@ -106,6 +81,7 @@ function GetZonesToProcess()
             table.insert(availableZones, zone)
         end
     end
+    print("OKAY")
 
     local availableLength = #availableZones
     print("Length: " .. availableLength)
@@ -145,11 +121,11 @@ function SpawnOre(x, y, z, zone)
         return false
     end
 
-    -- print("CHECK IF IN ZONE")
-    -- if zone.ores and zone.ores[locationID] then
-    --     print("ALREADY IN ZONE")
-    --     return false
-    -- end
+    print("CHECK IF IN ZONE")
+    if zone.ores and zone.ores[locationID] then
+        print("ALREADY IN ZONE")
+        return false
+    end
 
     -- TODO: add square validation too
 
@@ -160,33 +136,13 @@ function SpawnOre(x, y, z, zone)
         return true
     end
 
-    ISOreBuild.spawnOre(x, y, z, zone)
+    ServerDatabase:spawnOre(x, y, z, zone)
 
     return true
 end
 
-Events.EveryTenMinutes.Add(function()
-    if isServer() then
+if isServer() then
+    Events.EveryTenMinutes.Add(function()
         SpawnOres()
-    end
-end)
-
-
-Events.LoadGridsquare.Add(function(sq)
-    if not isServer() then return end
-
-    local x, y, z = sq:getX(), sq:getY(), sq:getZ()
-    if ServerDatabase.data.pendingOres[x .. "::" .. y .. "::" .. z] then
-        print("Lets gooooooooooo")
-        ISOreBuild.spawnOre(x, y, z, ServerDatabase.data.pendingOres[x .. "::" .. y .. "::" .. z])
-    end
-end)
-
--- It absolutely must be within 150 tiles or something? of an actual instance of a player if you are trying to access unloaded cells/squares. Fully accessing unloaded/distant squares/cells, the way that people often want to do, isn't something the engine supports, and can even crash a game sometimes when you accidentally try to use data from them.
-
--- In the sense of what you are trying to do, you can only manipulate squares when they are in the vicinity of a player. Full stop.
-
--- I, as a dev, working with the unfettered java, can't properly access and do stuff with a square, unless it is in the vicinity of a player.
--- Ensuring that a square is properly within the vicinity of a player with the stuff I do before trying to evaluate or manipulate it is a constant thing I have to pay attention to in my job.
--- You can somehow delay the stuff you are trying to do until a player is in the vicinity of the square, but I would caution you that the usual means for that, which I used myself when I was a modder, utilizes the OnLoadGridSquare event, which is not optimal as it can get expensive.
--- I have unlisted mods of mine that use OnGridSquare on account of how dissatisfied I am with the performance in a MP context.
+    end)
+end

@@ -4,6 +4,7 @@ MiningZoneServerSide = {
   endPoint = {},
   oreID = COPPER_ORE_ID,
   maxSpawnCount = 1,
+  currentOreCount = 0,
   ores = {}
 }
 
@@ -18,10 +19,7 @@ function MiningZoneServerSide:create(miningZoneClientSide)
   o.oreID = miningZoneClientSide.oreID;
   o.maxSpawnCount = miningZoneClientSide.maxSpawnCount;
   o.ores = {}
+  o.currentOreCount = 0
 
   return o
-end
-
-function MiningZoneServerSide:requireSpawn()
-  return true
 end

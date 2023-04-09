@@ -13,6 +13,10 @@ ServerCommunication.requests[GET_ZONE_CLIENT_REQUEST] = function(player, args)
     SendServerRequestToPlayer(player, ZONES_UPDATED_SERVER_REQUEST, data)
 end
 
+ServerCommunication.requests[REMOVE_ORE_CLIENT_REQUEST] = function(player, args)
+    print("Client ore removal request")
+end
+
 ServerCommunication.requests[ADD_ZONE_CLIENT_REQUEST] = function(player, args)
     print("ADD zone requested from player")
 

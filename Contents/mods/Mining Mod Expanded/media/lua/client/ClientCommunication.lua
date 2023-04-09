@@ -9,8 +9,11 @@ ClientCommunication.requests[ZONES_UPDATED_SERVER_REQUEST] = function(args)
 end
 
 ClientCommunication.requests[ADD_ZONE_CLIENT_REQUEST] = function(miningZone)
-    print("ADD zone request")
     SendClientRequest(ADD_ZONE_CLIENT_REQUEST, miningZone)
+end
+
+ClientCommunication.requests[REMOVE_ORE_CLIENT_REQUEST] = function(oreInfo)
+    SendClientRequest(REMOVE_ORE_CLIENT_REQUEST, oreInfo)
 end
 
 ClientCommunication.requests[REMOVE_ZONE_CLIENT_REQUEST] = function(miningZone)

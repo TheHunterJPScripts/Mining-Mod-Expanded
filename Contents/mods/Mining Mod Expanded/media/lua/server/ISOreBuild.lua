@@ -1,8 +1,7 @@
 ISOreBuild = ISBuildingObject:derive("ISOreBuild");
 
 function ISOreBuild.onDestroy(thump, player)
-    print("Destroyme")
-    return
+    ClientCommunication.requests[REMOVE_ORE_CLIENT_REQUEST](nil)
 end
 
 function ISOreBuild:create(x, y, z, north, sprite)
@@ -15,8 +14,6 @@ function ISOreBuild:create(x, y, z, north, sprite)
     self.javaObject:setBreakSound("BreakObject");
 
     self.sq:AddSpecialObject(self.javaObject)
-
-    -- self.javaObject:transmitCompleteItemToServer();
 end
 
 function ISOreBuild:removeFromGround(square)
@@ -64,31 +61,4 @@ end
 
 function ISOreBuild:render(x, y, z, square)
     ISBuildingObject.render(self, x, y, z, square)
-end
-
-function ISOreBuild:getJavaObject()
-    return self.javaObject
-end
-
-function ISOreBuild.spawnOre(x, y, z, zone)
-    -- TODO: Check if square is available for spawn
-
-    local oreData = MiningZoneShared.ores[zone.oreID]
-
-    if not oreData then
-        print("Unable to find ore data")
-        return
-    end
-
-    print("Spawning Ore " .. oreData.id)
-    local textureIndex = ZombRand(#oreData.textures) + 1
-    local texture = oreData.textures[textureIndex]
-
-    local object = ISOreBuild:new(oreData.name, texture)
-    object:create(x, y, z, false, texture)
-    object.javaObject:transmitCompleteItemToClients();
-
-    local locationID = x .. "::" .. y .. "::" .. z
-    ServerDatabase.data.pendingOres[locationID] = nil
-    -- ServerDatabase.data.zones[zone.name].ores[locationID] = object
 end
