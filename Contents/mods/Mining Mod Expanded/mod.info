@@ -1,0 +1,7 @@
+name=Mining Zones
+id=miningZone
+description=
+poster=poster.png
+
+pack=mines
+tiledef=mines 3583

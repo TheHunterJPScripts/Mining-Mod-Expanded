@@ -1,1 +1,1 @@
-# Mining-Mod-Expanded
+# Mining Zone
